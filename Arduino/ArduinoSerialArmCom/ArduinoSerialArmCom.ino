@@ -1,18 +1,40 @@
 #include <HCPCA9685.h>
 
+#define motor1_pin1 8
+#define motor1_pin2 9
+#define motor1_speed_pin 5
+
+#define motor2_pin1 10
+#define motor2_pin2 11
+#define motor2_speed_pin 6
+
+int engineSpeed = 210;
+
 /* I2C slave address for the device/module. For the HCMODU0097 the default I2C address
    is 0x40 */
 #define  I2CAdd 0x40
 /* Create an instance of the library */
 HCPCA9685 HCPCA9685(I2CAdd);
 
-int servo_indices[4] = {4, 5, 2, 3};
-int servo_targets[4] = {90, 90, 90, 90};
-int servo_currents[4] = {90, 90, 90, 90};
+const int NB_SERVOS = 5;
+
+int servo_indices[NB_SERVOS] = {0, 7, 11, 1, 2};
+int servo_targets[NB_SERVOS] = {90, 90, 90, 90, 90};
+int servo_currents[NB_SERVOS] = {90, 90, 90, 90, 90};
 
 const float step_size = 0.05;
 
 void setup() {
+
+  //DEFINE PIN MODES AND SERVO
+  pinMode(motor1_pin1, OUTPUT);
+  pinMode(motor1_pin2, OUTPUT);
+  pinMode(motor1_speed_pin, OUTPUT);
+
+  pinMode(motor2_pin1, OUTPUT);
+  pinMode(motor2_pin2, OUTPUT);
+  pinMode(motor2_speed_pin, OUTPUT);
+  
   /* Initialise the library and set it to 'servo mode' */
   HCPCA9685.Init(SERVO_MODE);
   /* Wake the device up */
@@ -21,7 +43,7 @@ void setup() {
   Serial.begin(9600);
   Serial.setTimeout(15);
 
-  for(int i = 0; i < 4; i++) {
+  for(int i = 0; i < NB_SERVOS; i++) {
     HCPCA9685.Servo(servo_indices[i], servo_currents[i]);
   }
 }
@@ -40,7 +62,7 @@ void loop() {
   turn_servo(0, 90 , 0, false);
   */
 
-  for(int i = 0; i < 4; i++) {
+  for(int i = 0; i < NB_SERVOS; i++) {
     int servo_step = step_size * servo_targets[i] + (1 - step_size) * servo_currents[i];
     servo_currents[i] = servo_step;
     HCPCA9685.Servo(servo_indices[i], servo_step);
@@ -71,16 +93,23 @@ String serialData;
 void serialEvent(){
   serialData = Serial.readString();
 
-  turn_to(0, parseDataGrip(serialData));
-  turn_to(1, parseDataWrist(serialData));
-  turn_to(2, parseDataElbow(serialData));
-  turn_to(3, parseDataShoulder(serialData));
+  turn_to(0, parseDataBase(serialData));
+  turn_to(1, parseDataGrip(serialData));
+  turn_to(2, parseDataWrist(serialData));
+  turn_to(3, parseDataElbow(serialData));
+  turn_to(4, parseDataShoulder(serialData));
   
+}
+
+int parseDataBase(String data) {
+  data.remove(data.indexOf("G"));
+  data.remove(data.indexOf("B"), 1);
+  return data.toInt();
 }
 
 int parseDataGrip(String data){
   data.remove(data.indexOf("W"));
-  data.remove(data.indexOf("G"), 1);
+  data.remove(0, data.indexOf("G")+1);
   return data.toInt();
 }
 

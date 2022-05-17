@@ -11,7 +11,7 @@ import java.time.Instant;
 public class ArduinoSerial {
 
     private static Instant lastPacketTime = Instant.now();
-    private static final Duration LIMITER = Duration.ofMillis(15);
+    private static final Duration LIMITER = Duration.ofMillis(50);
     SerialPort activePort;
     SerialPort[] ports = SerialPort.getCommPorts();
 
