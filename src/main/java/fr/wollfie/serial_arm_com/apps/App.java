@@ -1,4 +1,4 @@
-package fr.wollfie.serial_arm_com;
+package fr.wollfie.serial_arm_com.apps;
 
 import fr.wollfie.serial_arm_com.io.ArduinoSerial;
 import javafx.application.Application;
@@ -22,16 +22,7 @@ public class App extends Application {
     private static final int SERVO_TRIM_MIN = 110;
     private static final int SERVO_TRIM_MAX = 590;
 
-    private static final int SERVO_MG996R_MIN = 0;
-    private static final int SERVO_MG996R_MAX = 300;
-    private static final int SERVO_MG996R_MID = (SERVO_MG996R_MAX-SERVO_MG996R_MIN)/2;
-
-    private static final int SHOULDER_TRIM_MAX = 440;
-    private static final int SHOULDER_TRIM_MIN = 0;
-
-    private static final String ARDUINO_PORT = "COM3";
-
-    private ArduinoSerial arduinoSerial;
+    private final ServoControl servoControl = new ServoControl();
 
     @Override
     public void start(Stage stage) {
@@ -41,20 +32,10 @@ public class App extends Application {
 
         init(root);
 
-        arduinoSerial = new ArduinoSerial();
-        arduinoSerial.showAllPort();
-        arduinoSerial.start(ARDUINO_PORT);
-
         stage.setScene(scene);
         stage.show();
 
     }
-
-    private int base = SERVO_MG996R_MIN;
-    private int grip = SERVO_MG996R_MID;
-    private int wrist = SERVO_MG996R_MID;
-    private int shoulder = 90;
-    private int elbow = 90;
 
     private int motor1 = 0;
     private int motor2 = 0;
@@ -74,48 +55,48 @@ public class App extends Application {
         Slider motor2Slider = new Slider();
 
         InvalidationListener dataUpdater = o -> {
-            base = (int) (sliderBase.getValue());
-            grip = (int) (sliderGrip.getValue());
-            wrist = (int) (sliderWrist.getValue());
-            shoulder = (int)( sliderShoulder.getValue());
-            elbow = (int)( sliderElbow.getValue());
+            servoControl.base = (int) (sliderBase.getValue());
+            servoControl.grip = (int) (sliderGrip.getValue());
+            servoControl.wrist = (int) (sliderWrist.getValue());
+            servoControl.shoulder = (int) (sliderShoulder.getValue());
+            servoControl.elbow = (int) (sliderElbow.getValue());
             motor1 = (int)(motor1Slider.getValue());
             motor2 = (int)(motor2Slider.getValue());
-            sendData();
+            servoControl.sendData();
         };
 
         Text baseText = new Text("Base");
-        sliderBase.setMax(SERVO_MG996R_MAX);
-        sliderBase.setMin(SERVO_MG996R_MIN);
-        sliderBase.setValue(SERVO_MG996R_MIN);
+        sliderBase.setMax(ServoControl.SERVO_MG996R_MAX);
+        sliderBase.setMin(ServoControl.SERVO_MG996R_MIN);
+        sliderBase.setValue(ServoControl.SERVO_MG996R_MIN);
         sliderBase.valueProperty().addListener(dataUpdater);
         sliderBase.setOrientation(Orientation.HORIZONTAL);
 
         Text gripText = new Text("Grip");
-        sliderGrip.setMax(SHOULDER_TRIM_MAX);
-        sliderGrip.setMin(SHOULDER_TRIM_MIN);
-        sliderGrip.setValue((SHOULDER_TRIM_MAX + SHOULDER_TRIM_MIN) / 2.0f);
+        sliderGrip.setMax(ServoControl.SHOULDER_TRIM_MAX);
+        sliderGrip.setMin(ServoControl.SHOULDER_TRIM_MIN);
+        sliderGrip.setValue((ServoControl.SHOULDER_TRIM_MAX + ServoControl.SHOULDER_TRIM_MIN) / 2.0f);
         sliderGrip.valueProperty().addListener(dataUpdater);
         sliderGrip.setOrientation(Orientation.HORIZONTAL);
 
         Text wristText = new Text("Wrist");
-        sliderWrist.setMax(SERVO_MG996R_MAX);
-        sliderWrist.setMin(SERVO_MG996R_MIN);
-        sliderWrist.setValue((SERVO_MG996R_MAX + SERVO_MG996R_MIN) / 2.0f);
+        sliderWrist.setMax(ServoControl.SERVO_MG996R_MAX);
+        sliderWrist.setMin(ServoControl.SERVO_MG996R_MIN);
+        sliderWrist.setValue((ServoControl.SERVO_MG996R_MAX + ServoControl.SERVO_MG996R_MIN) / 2.0f);
         sliderWrist.valueProperty().addListener(dataUpdater);
         sliderWrist.setOrientation(Orientation.HORIZONTAL);
 
         Text elbowText = new Text("Elbow");
-        sliderElbow.setMax(SHOULDER_TRIM_MAX);
-        sliderElbow.setMin(SHOULDER_TRIM_MIN);
-        sliderElbow.setValue((SHOULDER_TRIM_MAX + SHOULDER_TRIM_MIN) / 2.0f);
+        sliderElbow.setMax(ServoControl.SHOULDER_TRIM_MAX);
+        sliderElbow.setMin(ServoControl.SHOULDER_TRIM_MIN);
+        sliderElbow.setValue((ServoControl.SHOULDER_TRIM_MAX + ServoControl.SHOULDER_TRIM_MIN) / 2.0f);
         sliderElbow.valueProperty().addListener(dataUpdater);
         sliderElbow.setOrientation(Orientation.HORIZONTAL);
 
         Text shoulderText = new Text("Shoulder");
-        sliderShoulder.setMax(SHOULDER_TRIM_MAX);
-        sliderShoulder.setMin(SHOULDER_TRIM_MIN);
-        sliderShoulder.setValue((SHOULDER_TRIM_MAX + SHOULDER_TRIM_MIN) / 2.0f);
+        sliderShoulder.setMax(ServoControl.SHOULDER_TRIM_MAX);
+        sliderShoulder.setMin(ServoControl.SHOULDER_TRIM_MIN);
+        sliderShoulder.setValue((ServoControl.SHOULDER_TRIM_MAX + ServoControl.SHOULDER_TRIM_MIN) / 2.0f);
         sliderShoulder.valueProperty().addListener(dataUpdater);
         sliderShoulder.setOrientation(Orientation.HORIZONTAL);
 
@@ -135,48 +116,11 @@ public class App extends Application {
 
         motorHBox.getChildren().addAll(motor1Slider, motor2Slider);
 
-        HBox moveStraightHbox = new HBox();
-        Button moveStraightPlus = new Button("+");
-        Button moveStraightMinus = new Button("-");
-
-
-        moveStraightPlus.setOnAction(o -> {
-            double propMove = (SHOULDER_TRIM_MAX - SHOULDER_TRIM_MIN) * MOVING_SCALE;
-            elbow += propMove;
-            shoulder += propMove;
-            updateSliders();
-            sendData();
-        });
-
-        moveStraightMinus.setOnAction(o -> {
-            double propMove = (SHOULDER_TRIM_MAX - SHOULDER_TRIM_MIN) * MOVING_SCALE;
-            elbow -= propMove;
-            shoulder -= propMove;
-            updateSliders();
-            sendData();
-        });
-
-        moveStraightHbox.getChildren().addAll(moveStraightMinus, moveStraightPlus);
 
         root.getChildren().addAll(baseText, sliderBase, gripText, sliderGrip,
                 wristText, sliderWrist,
                 elbowText, sliderElbow, shoulderText,
-                sliderShoulder, motorHBox,
-                moveStraightHbox);
-    }
-
-    private void updateSliders() {
-        sliderBase.setValue(base);
-        sliderShoulder.setValue(shoulder);
-        sliderElbow.setValue(elbow);
-        sliderWrist.setValue(wrist);
-        sliderGrip.setValue(grip);
-    }
-
-    private void sendData() {
-        String msg = String.format("B%04dG%04dW%04dE%04dS%04d%n", base, grip, wrist, elbow, shoulder);
-        arduinoSerial.write(msg);
-        System.out.println(msg);
+                sliderShoulder, motorHBox);
     }
 
     public static void main(String[] args) {
