@@ -52,7 +52,6 @@ public class ArduinoSerial {
 
     public void write(String data) {
         if (LIMITER.toMillis() < Duration.between(lastPacketTime, Instant.now()).toMillis()) {
-            System.out.println(data);
             byte[] toWrite = data.getBytes(StandardCharsets.UTF_8);
             activePort.writeBytes(toWrite, toWrite.length);
             lastPacketTime = Instant.now();

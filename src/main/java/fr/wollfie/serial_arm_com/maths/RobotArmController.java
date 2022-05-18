@@ -2,10 +2,12 @@ package fr.wollfie.serial_arm_com.maths;
 
 import fr.wollfie.serial_arm_com.apps.ArmPart;
 import fr.wollfie.serial_arm_com.apps.ArmPartDrawer;
+import fr.wollfie.serial_arm_com.apps.ServoControl;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.Nullable;
 
-public final class InverseKinematicModel {
+public final class RobotArmController {
 
     private final double l1;
     private final double l2;
@@ -15,10 +17,13 @@ public final class InverseKinematicModel {
     private final ArmPartDrawer forearmDrawer;
     private final ArmPartDrawer handDrawer;
 
-    private InverseKinematicModel(double l1, double l2, double l3) {
+    private final ServoControl servoControl;
+
+    private RobotArmController(double l1, double l2, double l3, ServoControl servoControl) {
         this.l1 = l1;
         this.l2 = l2;
         this.l3 = l3;
+        this.servoControl = servoControl;
 
         bicepsDrawer = ArmPartDrawer.with(
                 new Color(0, 0.5, 0.5, 1.0),
@@ -33,8 +38,8 @@ public final class InverseKinematicModel {
                 ArmPart.buildNew(l3, forearmDrawer.getArmPart()));
     }
 
-    public static InverseKinematicModel of(double l1, double l2, double l3) {
-        return new InverseKinematicModel(l1, l2, l3);
+    public static RobotArmController of(double l1, double l2, double l3, @Nullable ServoControl servoControl) {
+        return new RobotArmController(l1, l2, l3, servoControl);
     }
 
     private double cosCalc(double a, double b, double c) {
@@ -43,6 +48,21 @@ public final class InverseKinematicModel {
 
     public void apply(double x, double y, double angleToGroundDeg) {
         apply(x, y, angleToGroundDeg, true);
+    }
+
+    public void update(double x, double y, double angleToGroundDeg, boolean elbowUp,
+                       double gripOpeningDeg, double baseRotationDeg) {
+        apply(x, y, angleToGroundDeg, elbowUp);
+
+        if (servoControl != null) {
+            servoControl.writeAnglesRad(
+                    Math.toRadians(baseRotationDeg),
+                    bicepsDrawer.getArmPart().getAngleRad(),
+                    forearmDrawer.getArmPart().getAngleRad(),
+                    handDrawer.getArmPart().getAngleRad(),
+                    Math.toRadians(gripOpeningDeg)
+            );
+        }
     }
 
     public void apply(double x, double y, double angleToGroundDeg, boolean elbowUp) {
