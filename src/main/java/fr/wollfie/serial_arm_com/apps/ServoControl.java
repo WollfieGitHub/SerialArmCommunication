@@ -4,8 +4,6 @@ import fr.wollfie.serial_arm_com.io.ArduinoSerial;
 import fr.wollfie.serial_arm_com.sim.ArduinoControlSimulator;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import org.jetbrains.annotations.Nullable;
 
 public class ServoControl {
     static final int SERVO_MG996R_MIN = 0;
@@ -93,7 +91,15 @@ public class ServoControl {
         );
     }
 
-    public void simDrawOn(GraphicsContext ctx) {
+    public void simDrawArmOn(GraphicsContext ctx) {
         this.arduinoControlSimulator.drawOn(ctx);
+    }
+
+    public void simDrawRotOn(GraphicsContext ctx, double radius) {
+        this.arduinoControlSimulator.rotDrawOn(ctx, radius);
+    }
+
+    public void simDrawGripOn(GraphicsContext ctx, double radius) {
+        this.arduinoControlSimulator.gripDrawOn(ctx, radius);
     }
 }

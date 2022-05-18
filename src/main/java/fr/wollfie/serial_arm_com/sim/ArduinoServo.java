@@ -5,8 +5,6 @@ public class ArduinoServo {
     private double currentAngleDeg;
     private double targetAngleDeg;
 
-    private static final double STEP_SIZE = 0.05;
-
     public ArduinoServo(double initAngleDeg) {
         this.currentAngleDeg = initAngleDeg;
         this.targetAngleDeg = initAngleDeg;
@@ -21,6 +19,6 @@ public class ArduinoServo {
     }
 
     public void update() {
-        this.currentAngleDeg = STEP_SIZE * targetAngleDeg + (1 - STEP_SIZE) * currentAngleDeg;
+        this.currentAngleDeg = ArduinoControlSimulator.STEP_SIZE * targetAngleDeg + (1 - ArduinoControlSimulator.STEP_SIZE) * currentAngleDeg;
     }
 }

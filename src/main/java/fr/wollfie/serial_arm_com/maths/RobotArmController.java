@@ -3,7 +3,6 @@ package fr.wollfie.serial_arm_com.maths;
 import fr.wollfie.serial_arm_com.apps.ArmPart;
 import fr.wollfie.serial_arm_com.apps.ArmPartDrawer;
 import fr.wollfie.serial_arm_com.apps.ServoControl;
-import fr.wollfie.serial_arm_com.sim.ArduinoControlSimulator;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.Nullable;
@@ -104,7 +103,7 @@ public final class RobotArmController {
         return l1 + l2 + l3;
     }
 
-    public void drawOn(GraphicsContext ctx) {
+    public void drawArmOn(GraphicsContext ctx) {
         bicepsDrawer.drawOn(ctx);
         forearmDrawer.drawOn(ctx);
         handDrawer.drawOn(ctx);

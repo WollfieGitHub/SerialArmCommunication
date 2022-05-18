@@ -1,6 +1,7 @@
 package fr.wollfie.serial_arm_com.apps;
 
 import fr.wollfie.serial_arm_com.maths.RobotArmController;
+import fr.wollfie.serial_arm_com.sim.ArduinoControlSimulator;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -32,11 +33,17 @@ public class InverseKinApp extends Application {
     private ServoControl servoControl;
     private RobotArmController invKinModel;
 
-    private GraphicsContext ctx;
+    private GraphicsContext armCtx;
+    private GraphicsContext rotCtx;
+    private GraphicsContext gripCtx;
+
     private Affine canvasTransform;
 
-    private static final int CANVAS_DIM = 300;
+    private static final int MAIN_CANVAS_DIM = 300;
     private static final Color BACKGROUND_COLOR = rgb255To1(131, 168, 146, 255);
+    private static final int LITTLE_CANVAS_DIM = 150;
+
+    public static final double ANGLE_TO_GRIP_RATIO = 0.5;
 
     private static Color rgb255To1(int r, int g, int b, int a) {
         return new Color(r/255.0, g/255.0, b/255.0, a/255.0);
@@ -89,8 +96,90 @@ public class InverseKinApp extends Application {
     }
 
     private void initLoggerBox(VBox loggerBox) {
-        loggerBox.getChildren().addAll(logger);
+        loggerBox.setSpacing(10.0);
+
+        HBox fineTuningHBox = initFineTuningHBox();
+
+        VBox rotCanvas = initRotBox();
+        VBox gripCanvas = initGripBox();
+
+        loggerBox.getChildren().addAll(logger, fineTuningHBox, rotCanvas, gripCanvas);
         logger.setDisable(true);
+    }
+
+    public void updateArm() {
+        invKinModel.update(x, y, Math.toDegrees(phiE), elbowUp, gripOpeningDeg, baseRotationDeg);
+
+        final double DrawingDim = invKinModel.getMaxRange();
+
+        armCtx.clearRect(-DrawingDim, -DrawingDim, 2*DrawingDim, 2*DrawingDim);
+
+        armCtx.setStroke(new Color(1, 0, 0, 1));
+        armCtx.setLineWidth(1/ scaleFactor);
+
+        armCtx.strokeOval(
+                -invKinModel.getMaxRange(),
+                -invKinModel.getMaxRange(),
+                invKinModel.getMaxRange()*2,
+                invKinModel.getMaxRange()*2);
+
+        armCtx.setLineWidth(2/ scaleFactor);
+
+        invKinModel.drawArmOn(armCtx);
+        servoControl.simDrawArmOn(armCtx);
+
+        // ROTATION
+        rotCtx.clearRect(-LITTLE_CANVAS_DIM/2.0, -LITTLE_CANVAS_DIM/2.0, LITTLE_CANVAS_DIM, LITTLE_CANVAS_DIM);
+        rotCtx.setStroke(new Color(1, 0, 0, 1));
+        rotCtx.setLineWidth(1);
+
+        rotCtx.strokeOval(-LITTLE_CANVAS_DIM/2.0, -LITTLE_CANVAS_DIM/2.0, LITTLE_CANVAS_DIM, LITTLE_CANVAS_DIM);
+        servoControl.simDrawRotOn(rotCtx, LITTLE_CANVAS_DIM/2.0);
+
+        // GRIP
+        gripCtx.clearRect(-LITTLE_CANVAS_DIM/2.0, -LITTLE_CANVAS_DIM/2.0, LITTLE_CANVAS_DIM, LITTLE_CANVAS_DIM);
+        gripCtx.setStroke(new Color(1, 0, 0, 1));
+        gripCtx.setLineWidth(1);
+
+        servoControl.simDrawGripOn(gripCtx, LITTLE_CANVAS_DIM/2.0);
+    }
+
+    private VBox initGripBox() {
+        VBox vBox = new VBox();
+
+        Canvas canvas = new Canvas();
+        gripCtx = canvas.getGraphicsContext2D();
+        canvas.setWidth(LITTLE_CANVAS_DIM);
+        canvas.setHeight(LITTLE_CANVAS_DIM);
+
+        Affine affine = Transform.affine(1, 0, 0, 1, LITTLE_CANVAS_DIM/2.0, LITTLE_CANVAS_DIM/2.0);
+        gripCtx.setTransform(affine);
+
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setPadding(new Insets(10));
+        vBox.setBackground(new Background(new BackgroundFill(BACKGROUND_COLOR, null, null)));
+        vBox.getChildren().addAll(canvas);
+
+        return vBox;
+    }
+
+    private VBox initRotBox() {
+        VBox vBox = new VBox();
+
+        Canvas canvas = new Canvas();
+        rotCtx = canvas.getGraphicsContext2D();
+        canvas.setWidth(LITTLE_CANVAS_DIM);
+        canvas.setHeight(LITTLE_CANVAS_DIM);
+
+        Affine affine = Transform.affine(1, 0, 0, 1, LITTLE_CANVAS_DIM/2.0, LITTLE_CANVAS_DIM/2.0);
+        rotCtx.setTransform(affine);
+
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setPadding(new Insets(10));
+        vBox.setBackground(new Background(new BackgroundFill(BACKGROUND_COLOR, null, null)));
+        vBox.getChildren().addAll(canvas);
+
+        return vBox;
     }
 
 
@@ -107,17 +196,68 @@ public class InverseKinApp extends Application {
         mainBox.getChildren().addAll(invKinVBox, rotVBox, gripOpeningVBox, phiEVBox, elbowUpVBox);
     }
 
+    private HBox initFineTuningHBox() {
+        HBox fineTuningHBox = new HBox();
+
+        VBox stepSizeVBox = new VBox();
+
+        Label stepSizeLbl = new Label("Step size");
+        Slider stepSizeSlider = new Slider();
+        stepSizeSlider.setOrientation(Orientation.VERTICAL);
+        stepSizeSlider.setMajorTickUnit(0.05);
+        stepSizeSlider.setMinorTickCount(4);
+        stepSizeSlider.setShowTickMarks(true);
+        stepSizeSlider.setShowTickLabels(true);
+        stepSizeSlider.setSnapToTicks(true);
+        stepSizeSlider.setMax(0.2);
+        stepSizeSlider.setValue(ArduinoControlSimulator.STEP_SIZE);
+        stepSizeSlider.setMin(0);
+        stepSizeSlider.valueProperty().addListener(o -> {
+            ArduinoControlSimulator.STEP_SIZE = stepSizeSlider.getValue();
+            stepSizeLbl.setText("Step size : " + String.format("%2.4f", ArduinoControlSimulator.STEP_SIZE));
+        });
+
+        stepSizeVBox.getChildren().addAll(stepSizeLbl, stepSizeSlider);
+
+        VBox updateDelayVBox = new VBox();
+
+        Label updateDelayLbl = new Label("Update Delay");
+        Slider updateDelaySlider = new Slider();
+        updateDelaySlider.setOrientation(Orientation.VERTICAL);
+        updateDelaySlider.setMajorTickUnit(10);
+        updateDelaySlider.setMinorTickCount(10);
+        updateDelaySlider.setShowTickMarks(true);
+        updateDelaySlider.setShowTickLabels(true);
+        updateDelaySlider.setSnapToTicks(true);
+        updateDelaySlider.setMax(100);
+        updateDelaySlider.setValue(ArduinoControlSimulator.UPDATE_DELAY_MS);
+        updateDelaySlider.setMin(0);
+        updateDelaySlider.valueProperty().addListener(o -> {
+            ArduinoControlSimulator.UPDATE_DELAY_MS = (long)updateDelaySlider.getValue();
+            updateDelayLbl.setText("Update Delay : " + ArduinoControlSimulator.UPDATE_DELAY_MS + "ms");
+        });
+
+        updateDelayVBox.getChildren().addAll(updateDelayLbl, updateDelaySlider);
+
+        fineTuningHBox.getChildren().addAll(stepSizeVBox, updateDelayVBox);
+        fineTuningHBox.setAlignment(Pos.CENTER);
+        fineTuningHBox.setSpacing(30);
+        fineTuningHBox.setBackground(new Background(new BackgroundFill(BACKGROUND_COLOR, null, null)));
+        fineTuningHBox.setPadding(new Insets(10));
+        return fineTuningHBox;
+    }
+
     private void initCanvas(Canvas invKinCanvas) {
-        scaleFactor = InverseKinApp.CANVAS_DIM / (invKinModel.getMaxRange());
-        ctx = invKinCanvas.getGraphicsContext2D();
-        invKinCanvas.setWidth(2*CANVAS_DIM);
-        invKinCanvas.setHeight(CANVAS_DIM);
+        scaleFactor = InverseKinApp.MAIN_CANVAS_DIM / (invKinModel.getMaxRange());
+        armCtx = invKinCanvas.getGraphicsContext2D();
+        invKinCanvas.setWidth(2* MAIN_CANVAS_DIM);
+        invKinCanvas.setHeight(MAIN_CANVAS_DIM);
 
         canvasTransform = Transform.affine(
                 scaleFactor, 0,
                 0, -scaleFactor,
-                CANVAS_DIM, CANVAS_DIM);
-        ctx.setTransform(canvasTransform);
+                MAIN_CANVAS_DIM, MAIN_CANVAS_DIM);
+        armCtx.setTransform(canvasTransform);
 
         EventHandler<MouseEvent> armOrder = mouseEvent -> {
             try {
@@ -133,28 +273,6 @@ public class InverseKinApp extends Application {
 
         invKinCanvas.setOnMouseClicked(armOrder);
         invKinCanvas.setOnMouseDragged(armOrder);
-    }
-
-    public void updateArm() {
-        invKinModel.update(x, y, Math.toDegrees(phiE), elbowUp, gripOpeningDeg, baseRotationDeg);
-
-        final double DrawingDim = invKinModel.getMaxRange();
-
-        ctx.clearRect(-DrawingDim, -DrawingDim, 2*DrawingDim, 2*DrawingDim);
-
-        ctx.setStroke(new Color(1, 0, 0, 1));
-        ctx.setLineWidth(1/ scaleFactor);
-
-        ctx.strokeOval(
-                -invKinModel.getMaxRange(),
-                -invKinModel.getMaxRange(),
-                invKinModel.getMaxRange()*2,
-                invKinModel.getMaxRange()*2);
-
-        ctx.setLineWidth(2/ scaleFactor);
-
-        invKinModel.drawOn(ctx);
-        servoControl.simDrawOn(ctx);
     }
 
     @NotNull
@@ -206,7 +324,7 @@ public class InverseKinApp extends Application {
         gripSlider.setOrientation(Orientation.HORIZONTAL);
         gripSlider.setMin(60);
         gripSlider.setMax(120);
-        gripSlider.setValue(90);
+        gripSlider.setValue(60);
         gripSlider.setMajorTickUnit(30);
         gripSlider.setMinorTickCount(5);
         gripSlider.setShowTickLabels(true);

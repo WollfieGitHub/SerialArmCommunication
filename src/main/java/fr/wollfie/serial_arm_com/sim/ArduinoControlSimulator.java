@@ -3,8 +3,11 @@ package fr.wollfie.serial_arm_com.sim;
 import fr.wollfie.serial_arm_com.apps.ArmPart;
 import fr.wollfie.serial_arm_com.apps.ArmPartDrawer;
 import fr.wollfie.serial_arm_com.apps.InverseKinApp;
+import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Transform;
 
 public class ArduinoControlSimulator {
 
@@ -14,7 +17,9 @@ public class ArduinoControlSimulator {
     private final ArduinoServo WristServo = new ArduinoServo(0);
     private final ArduinoServo GripServo = new ArduinoServo(0);
 
-    private static final long UPDATE_DELAY_MS = 30;
+    public static double STEP_SIZE = 0.05;
+    public static long UPDATE_DELAY_MS = 30;
+
     private static final double ARM_DRAWING_TRANSPARENCY = 1.0;
     private long lastUpdateMs = System.currentTimeMillis();
 
@@ -74,5 +79,30 @@ public class ArduinoControlSimulator {
         bicepsDrawer.drawOn(ctx);
         forearmDrawer.drawOn(ctx);
         handDrawer.drawOn(ctx);
+    }
+
+    public void rotDrawOn(GraphicsContext ctx, double radius) {
+        Point2D end = new Point2D(0, radius);
+
+        Rotate rotate = Transform.rotate(270-Math.toDegrees(BaseServo.getCurrentAngleRad()), 0, 0);
+        end = rotate.transform(end);
+
+        ctx.strokeLine(0, 0, end.getX(), end.getY());
+    }
+
+    public void gripDrawOn(GraphicsContext ctx, double radius) {
+        Point2D end = new Point2D(0, radius);
+
+        Rotate rotateRight = Transform.rotate(180+ (Math.toDegrees(GripServo.getCurrentAngleRad())-60)
+                * InverseKinApp.ANGLE_TO_GRIP_RATIO, 0, 0);
+
+        Rotate rotateLeft = Transform.rotate(180- (Math.toDegrees(GripServo.getCurrentAngleRad())-60)
+                * InverseKinApp.ANGLE_TO_GRIP_RATIO, 0, 0);
+
+        Point2D endRight = rotateRight.transform(end);
+        Point2D endLeft = rotateLeft.transform(end);
+
+        ctx.strokeLine(0, 0, endRight.getX(), endRight.getY());
+        ctx.strokeLine(0, 0, endLeft.getX(), endLeft.getY());
     }
 }
