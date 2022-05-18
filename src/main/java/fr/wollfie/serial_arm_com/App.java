@@ -6,6 +6,7 @@ import javafx.beans.InvalidationListener;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -58,14 +59,17 @@ public class App extends Application {
     private int motor1 = 0;
     private int motor2 = 0;
 
+    private Slider sliderBase = new Slider();
+    private Slider sliderShoulder = new Slider();
+    private Slider sliderElbow = new Slider();
+    private Slider sliderWrist = new Slider();
+    private Slider sliderGrip = new Slider();
+
+    private static final float MOVING_SCALE = 0.05f;
+
     private void init(VBox root) {
         root.setAlignment(Pos.CENTER);
 
-        Slider sliderBase = new Slider();
-        Slider sliderShoulder = new Slider();
-        Slider sliderElbow = new Slider();
-        Slider sliderWrist = new Slider();
-        Slider sliderGrip = new Slider();
         Slider motor1Slider = new Slider();
         Slider motor2Slider = new Slider();
 
@@ -88,9 +92,9 @@ public class App extends Application {
         sliderBase.setOrientation(Orientation.HORIZONTAL);
 
         Text gripText = new Text("Grip");
-        sliderGrip.setMax(SERVO_MG996R_MAX);
-        sliderGrip.setMin(SERVO_MG996R_MIN);
-        sliderGrip.setValue((SERVO_MG996R_MAX + SERVO_MG996R_MIN) / 2.0f);
+        sliderGrip.setMax(SHOULDER_TRIM_MAX);
+        sliderGrip.setMin(SHOULDER_TRIM_MIN);
+        sliderGrip.setValue((SHOULDER_TRIM_MAX + SHOULDER_TRIM_MIN) / 2.0f);
         sliderGrip.valueProperty().addListener(dataUpdater);
         sliderGrip.setOrientation(Orientation.HORIZONTAL);
 
@@ -131,10 +135,42 @@ public class App extends Application {
 
         motorHBox.getChildren().addAll(motor1Slider, motor2Slider);
 
+        HBox moveStraightHbox = new HBox();
+        Button moveStraightPlus = new Button("+");
+        Button moveStraightMinus = new Button("-");
+
+
+        moveStraightPlus.setOnAction(o -> {
+            double propMove = (SHOULDER_TRIM_MAX - SHOULDER_TRIM_MIN) * MOVING_SCALE;
+            elbow += propMove;
+            shoulder += propMove;
+            updateSliders();
+            sendData();
+        });
+
+        moveStraightMinus.setOnAction(o -> {
+            double propMove = (SHOULDER_TRIM_MAX - SHOULDER_TRIM_MIN) * MOVING_SCALE;
+            elbow -= propMove;
+            shoulder -= propMove;
+            updateSliders();
+            sendData();
+        });
+
+        moveStraightHbox.getChildren().addAll(moveStraightMinus, moveStraightPlus);
+
         root.getChildren().addAll(baseText, sliderBase, gripText, sliderGrip,
                 wristText, sliderWrist,
                 elbowText, sliderElbow, shoulderText,
-                sliderShoulder, motorHBox);
+                sliderShoulder, motorHBox,
+                moveStraightHbox);
+    }
+
+    private void updateSliders() {
+        sliderBase.setValue(base);
+        sliderShoulder.setValue(shoulder);
+        sliderElbow.setValue(elbow);
+        sliderWrist.setValue(wrist);
+        sliderGrip.setValue(grip);
     }
 
     private void sendData() {

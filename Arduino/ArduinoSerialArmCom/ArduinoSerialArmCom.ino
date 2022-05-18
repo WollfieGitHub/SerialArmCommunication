@@ -18,7 +18,7 @@ HCPCA9685 HCPCA9685(I2CAdd);
 
 const int NB_SERVOS = 5;
 
-int servo_indices[NB_SERVOS] = {0, 7, 11, 1, 2};
+int servo_indices[NB_SERVOS] = {0, 1, 2, 3, 4};
 int servo_targets[NB_SERVOS] = {90, 90, 90, 90, 90};
 int servo_currents[NB_SERVOS] = {90, 90, 90, 90, 90};
 
@@ -94,10 +94,10 @@ void serialEvent(){
   serialData = Serial.readString();
 
   turn_to(0, parseDataBase(serialData));
-  turn_to(1, parseDataGrip(serialData));
-  turn_to(2, parseDataWrist(serialData));
-  turn_to(3, parseDataElbow(serialData));
-  turn_to(4, parseDataShoulder(serialData));
+  turn_to(1, parseDataShoulder(serialData));
+  turn_to(2, parseDataElbow(serialData));
+  turn_to(3, parseDataWrist(serialData));
+  turn_to(4, parseDataGrip(serialData));
   
 }
 
