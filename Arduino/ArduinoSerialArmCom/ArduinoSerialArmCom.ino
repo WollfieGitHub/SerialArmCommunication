@@ -50,38 +50,12 @@ void setup() {
 
 void loop() {
 
-  /*
-  turn_servo(0, 0 , 90, true);
-  turn_servo(1, 0 , 90, true);
-  turn_servo(2, 0 , 90, true);
-  turn_servo(3, 0 , 90, true);
-
-  turn_servo(3, 90 , 0, false);
-  turn_servo(2, 90 , 0, false);
-  turn_servo(1, 90 , 0, false);
-  turn_servo(0, 90 , 0, false);
-  */
-
   for(int i = 0; i < NB_SERVOS; i++) {
     int servo_step = step_size * servo_targets[i] + (1 - step_size) * servo_currents[i];
     servo_currents[i] = servo_step;
     HCPCA9685.Servo(servo_indices[i], servo_step);
   }
   delay(10);
-}
-
-void turn_servo(int servo_num, int initial_angle, int final_angle, bool growing) {
-  if (growing) {
-    for(int i = initial_angle ; i <= final_angle  ; i++){
-      HCPCA9685.Servo(servo_num, i);
-      delay(10);
-    }
-  } else {
-    for (int i = initial_angle ; i >= final_angle  ; i--) {
-      HCPCA9685.Servo(servo_num, i);
-      delay(10);
-    }
-  }
 }
 
 void turn_to(int servo_idx, int angle) {

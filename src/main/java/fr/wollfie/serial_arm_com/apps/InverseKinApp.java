@@ -2,6 +2,7 @@ package fr.wollfie.serial_arm_com.apps;
 
 import fr.wollfie.serial_arm_com.maths.RobotArmController;
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
@@ -11,6 +12,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
@@ -27,7 +29,7 @@ import java.util.Objects;
 public class InverseKinApp extends Application {
 
     private final TextArea logger = new TextArea();
-    private final ServoControl servoControl = new ServoControl(logger);
+    private ServoControl servoControl;
     private RobotArmController invKinModel;
 
     private GraphicsContext ctx;
@@ -56,7 +58,11 @@ public class InverseKinApp extends Application {
 
         var scene = new Scene(root, 900, 700);
 
-        invKinModel = RobotArmController.of(30, 15, 10, servoControl);
+        double l1 = 30, l2 = 15, l3 = 10;
+
+        servoControl  = new ServoControl(l1, l2, l3, logger);
+        invKinModel = RobotArmController.of(l1, l2, l3, servoControl);
+
         y = invKinModel.getMaxRange() * 2 / 3.0;
         x = invKinModel.getMaxRange() * 2 / 3.0;
 
@@ -75,6 +81,11 @@ public class InverseKinApp extends Application {
 
         stage.setScene(scene);
         stage.show();
+        stage.setOnCloseRequest(e -> System.exit(0));
+
+        Renderer renderer = new Renderer(this);
+        renderer.start();
+
     }
 
     private void initLoggerBox(VBox loggerBox) {
@@ -108,25 +119,23 @@ public class InverseKinApp extends Application {
                 CANVAS_DIM, CANVAS_DIM);
         ctx.setTransform(canvasTransform);
 
-        invKinCanvas.setOnMouseDragged(mouseEvent -> {
+        EventHandler<MouseEvent> armOrder = mouseEvent -> {
             try {
                 Point2D mouse = new Point2D(mouseEvent.getX(), mouseEvent.getY());
                 Point2D xy = canvasTransform.inverseTransform(mouse);
 
                 x = xy.getX();
                 y = xy.getY();
-
-                updateArm();
-
             } catch (NonInvertibleTransformException e) {
                 System.err.println("Cannot invert transform");
             }
-        });
+        };
 
-        updateArm();
+        invKinCanvas.setOnMouseClicked(armOrder);
+        invKinCanvas.setOnMouseDragged(armOrder);
     }
 
-    private void updateArm() {
+    public void updateArm() {
         invKinModel.update(x, y, Math.toDegrees(phiE), elbowUp, gripOpeningDeg, baseRotationDeg);
 
         final double DrawingDim = invKinModel.getMaxRange();
@@ -145,6 +154,7 @@ public class InverseKinApp extends Application {
         ctx.setLineWidth(2/ scaleFactor);
 
         invKinModel.drawOn(ctx);
+        servoControl.simDrawOn(ctx);
     }
 
     @NotNull
@@ -178,7 +188,6 @@ public class InverseKinApp extends Application {
         rotSlider.setSnapToTicks(true);
         rotSlider.valueProperty().addListener(o -> {
             baseRotationDeg = rotSlider.getValue();
-            updateArm();
         });
 
         rotVBox.setPadding(new Insets(10.0));
@@ -205,7 +214,6 @@ public class InverseKinApp extends Application {
         gripSlider.setSnapToTicks(true);
         gripSlider.valueProperty().addListener(o -> {
             gripOpeningDeg = gripSlider.getValue();
-            updateArm();
         });
 
         gripOpeningVBox.setPadding(new Insets(10.0));
@@ -223,7 +231,6 @@ public class InverseKinApp extends Application {
         elbowUpCheckbox.setSelected(true);
         elbowUpCheckbox.selectedProperty().addListener(o -> {
             elbowUp = elbowUpCheckbox.isSelected();
-            updateArm();
         });
 
         elbowUpVBox.setPadding(new Insets(10.0));
@@ -251,7 +258,6 @@ public class InverseKinApp extends Application {
 
         phiESlider.valueProperty().addListener(o -> {
             phiE = phiESlider.getValue();
-            updateArm();
         });
 
         phiEVBox.setPadding(new Insets(10.0));

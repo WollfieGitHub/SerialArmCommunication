@@ -5,4 +5,5 @@ module org.example {
     exports fr.wollfie.serial_arm_com;
     exports fr.wollfie.serial_arm_com.maths;
     exports fr.wollfie.serial_arm_com.apps;
+    exports fr.wollfie.serial_arm_com.sim;
 }

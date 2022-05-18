@@ -3,6 +3,7 @@ package fr.wollfie.serial_arm_com.maths;
 import fr.wollfie.serial_arm_com.apps.ArmPart;
 import fr.wollfie.serial_arm_com.apps.ArmPartDrawer;
 import fr.wollfie.serial_arm_com.apps.ServoControl;
+import fr.wollfie.serial_arm_com.sim.ArduinoControlSimulator;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +20,7 @@ public final class RobotArmController {
 
     private final ServoControl servoControl;
 
+
     private RobotArmController(double l1, double l2, double l3, ServoControl servoControl) {
         this.l1 = l1;
         this.l2 = l2;
@@ -26,15 +28,15 @@ public final class RobotArmController {
         this.servoControl = servoControl;
 
         bicepsDrawer = ArmPartDrawer.with(
-                new Color(0, 0.5, 0.5, 1.0),
+                new Color(0, 0.5, 0.5, 0.3),
                 ArmPart.buildNew(l1, null));
 
         forearmDrawer = ArmPartDrawer.with(
-                new Color(0.3, 0.3, 0.7, 1.0),
+                new Color(0.3, 0.3, 0.7, 0.3),
                 ArmPart.buildNew(l2, bicepsDrawer.getArmPart()));
 
         handDrawer = ArmPartDrawer.with(
-                new Color(0.6, 0.1, 0.9, 1.0),
+                new Color(0.6, 0.1, 0.9, 0.3),
                 ArmPart.buildNew(l3, forearmDrawer.getArmPart()));
     }
 

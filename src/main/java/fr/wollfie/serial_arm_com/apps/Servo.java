@@ -9,26 +9,34 @@ public class Servo {
     private final int MinPulse;
     private final int MaxPulse;
     private final int PulseRange;
+    private final double MountedAngleRad;
 
     private int currentPulse;
     private double currentAngle;
+    private double displayAngleRad;
 
-    private Servo(int minPulse, int maxPulse) {
+    private Servo(int minPulse, int maxPulse, double mountedAngleRad) {
         MinPulse = minPulse;
         MaxPulse = maxPulse;
         PulseRange = MaxPulse - MinPulse;
         currentPulse = 0;
+        MountedAngleRad = mountedAngleRad;
     }
 
-    public static Servo of(int minPulse, int maxPulse) {
-        return new Servo(minPulse, maxPulse);
+    public static Servo of(int minPulse, int maxPulse, double mountedAngleRad) {
+        return new Servo(minPulse, maxPulse, mountedAngleRad);
     }
 
     public void writeAngleRad(double angleRad) {
-        double clampedAngle = modRange(angleRad);
+        this.displayAngleRad = angleRad;
+        double clampedAngle = modRange(angleRad-MountedAngleRad);
         double factor = clampedAngle/RAD_RANGE;
         this.currentAngle = clampedAngle;
         this.currentPulse = (int)(MinPulse + factor * PulseRange);
+    }
+
+    public double getDisplayAngleDeg() {
+        return Math.toDegrees(displayAngleRad);
     }
 
     public int getCurrentPulse() {
