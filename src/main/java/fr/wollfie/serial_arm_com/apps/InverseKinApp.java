@@ -191,9 +191,35 @@ public class InverseKinApp extends Application {
         VBox phiEVBox = initPhiEVBox();
         VBox elbowUpVBox = initElbowUpVBox();
         VBox gripOpeningVBox = initGripOpeningVBox();
+        //VBox wristConfigVBox = initGripConfigVBox();
 
         mainBox.setSpacing(10.0);
         mainBox.getChildren().addAll(invKinVBox, rotVBox, gripOpeningVBox, phiEVBox, elbowUpVBox);
+    }
+
+    private VBox initGripConfigVBox() {
+        VBox gripOpeningVBox = new VBox();
+        Label gripLbl = new Label("Wrist Config");
+        Slider gripSlider = new Slider();
+
+        gripSlider.setOrientation(Orientation.HORIZONTAL);
+        gripSlider.setMin(0);
+        gripSlider.setMax(180);
+        gripSlider.setValue(0);
+        gripSlider.setMajorTickUnit(30);
+        gripSlider.setMinorTickCount(5);
+        gripSlider.setShowTickLabels(true);
+        gripSlider.setShowTickMarks(true);
+        gripSlider.setSnapToTicks(true);
+        gripSlider.valueProperty().addListener(o -> {
+            invKinModel.configWrist(gripSlider.getValue());
+        });
+
+        gripOpeningVBox.setPadding(new Insets(10.0));
+        gripOpeningVBox.getChildren().addAll(gripLbl, gripSlider);
+        gripOpeningVBox.setAlignment(Pos.CENTER);
+        gripOpeningVBox.setBackground(new Background(new BackgroundFill(BACKGROUND_COLOR, null, null)));
+        return gripOpeningVBox;
     }
 
     private HBox initFineTuningHBox() {
@@ -263,9 +289,15 @@ public class InverseKinApp extends Application {
             try {
                 Point2D mouse = new Point2D(mouseEvent.getX(), mouseEvent.getY());
                 Point2D xy = canvasTransform.inverseTransform(mouse);
+                xy = new Point2D(xy.getX(), Math.max(xy.getY(), 0));
+
+                if (Math.sqrt((xy.getX()*xy.getX()) + (xy.getY()*xy.getY())) > invKinModel.getMaxRange()) {
+                    xy = xy.normalize().multiply(invKinModel.getMaxRange());
+                }
 
                 x = xy.getX();
                 y = xy.getY();
+
             } catch (NonInvertibleTransformException e) {
                 System.err.println("Cannot invert transform");
             }
@@ -322,9 +354,9 @@ public class InverseKinApp extends Application {
         Slider gripSlider = new Slider();
 
         gripSlider.setOrientation(Orientation.HORIZONTAL);
-        gripSlider.setMin(60);
-        gripSlider.setMax(120);
-        gripSlider.setValue(60);
+        gripSlider.setMin(0);
+        gripSlider.setMax(45);
+        gripSlider.setValue(0);
         gripSlider.setMajorTickUnit(30);
         gripSlider.setMinorTickCount(5);
         gripSlider.setShowTickLabels(true);

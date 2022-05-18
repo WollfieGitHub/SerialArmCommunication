@@ -72,7 +72,8 @@ void serialEvent(){
   turn_to(2, parseDataElbow(serialData));
   turn_to(3, parseDataWrist(serialData));
   turn_to(4, parseDataGrip(serialData));
-  
+
+  Serial.println(parseDataGrip(serialData));  
 }
 
 int parseDataBase(String data) {

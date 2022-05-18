@@ -19,6 +19,10 @@ public final class RobotArmController {
 
     private final ServoControl servoControl;
 
+    public void configWrist(double angleDeg) {
+        this.handDrawer.getArmPart().rotateToAngleRad(Math.toRadians(angleDeg));
+    }
+
 
     private RobotArmController(double l1, double l2, double l3, ServoControl servoControl) {
         this.l1 = l1;
