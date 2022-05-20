@@ -6,4 +6,7 @@ module org.example {
     exports fr.wollfie.serial_arm_com.maths;
     exports fr.wollfie.serial_arm_com.apps;
     exports fr.wollfie.serial_arm_com.sim;
+    exports fr.wollfie.serial_arm_com.movement_sequence;
+    exports fr.wollfie.serial_arm_com.mechanism;
+    exports fr.wollfie.serial_arm_com.graphics;
 }

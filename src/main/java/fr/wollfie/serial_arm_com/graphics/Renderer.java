@@ -1,5 +1,6 @@
-package fr.wollfie.serial_arm_com.apps;
+package fr.wollfie.serial_arm_com.graphics;
 
+import fr.wollfie.serial_arm_com.apps.InverseKinApp;
 import javafx.animation.AnimationTimer;
 
 public class Renderer extends AnimationTimer {

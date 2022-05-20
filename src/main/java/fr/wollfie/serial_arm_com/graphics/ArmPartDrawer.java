@@ -1,5 +1,6 @@
-package fr.wollfie.serial_arm_com.apps;
+package fr.wollfie.serial_arm_com.graphics;
 
+import fr.wollfie.serial_arm_com.sim.ArmPart;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;

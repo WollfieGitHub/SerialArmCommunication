@@ -1,4 +1,4 @@
-package fr.wollfie.serial_arm_com.apps;
+package fr.wollfie.serial_arm_com.mechanism;
 
 public class Servo {
 

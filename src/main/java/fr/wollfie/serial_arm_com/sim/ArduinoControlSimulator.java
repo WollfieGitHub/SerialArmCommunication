@@ -1,7 +1,6 @@
 package fr.wollfie.serial_arm_com.sim;
 
-import fr.wollfie.serial_arm_com.apps.ArmPart;
-import fr.wollfie.serial_arm_com.apps.ArmPartDrawer;
+import fr.wollfie.serial_arm_com.graphics.ArmPartDrawer;
 import fr.wollfie.serial_arm_com.apps.InverseKinApp;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;

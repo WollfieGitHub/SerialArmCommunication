@@ -1,4 +1,4 @@
-package fr.wollfie.serial_arm_com.apps;
+package fr.wollfie.serial_arm_com.mechanism;
 
 import fr.wollfie.serial_arm_com.io.ArduinoSerial;
 import fr.wollfie.serial_arm_com.sim.ArduinoControlSimulator;
@@ -30,6 +30,9 @@ public class ServoControl {
     private final Servo Wrist = Servo.of(SERVO_MG996R_MIN, SERVO_MG996R_MAX, INITIAL_WRIST_RAD, true);
     private final Servo Grip = Servo.of(SERVO_BIG_MIN, SERVO_BIG_MAX, INITIAL_GRIP_RAD, false);
 
+    private final DCMotor MotorA = new DCMotor();
+    private final DCMotor MotorB = new DCMotor();
+
     private final boolean LogPoses;
     private final TextArea Logger;
 
@@ -44,10 +47,6 @@ public class ServoControl {
         this.arduinoControlSimulator = new ArduinoControlSimulator(l1, l2, l3);
     }
 
-    public ServoControl(double l1, double l2, double l3) {
-        this(l1, l2, l3, null);
-    }
-
     public void writeAnglesRad(double baseAngleRad, double shoulderAngleRad, double elbowAngleRad,
                                double wristAngleRad, double gripAngleRad) {
         Base.writeAngleRad(baseAngleRad);
@@ -58,14 +57,21 @@ public class ServoControl {
         sendData();
     }
 
+    public void writeSpeed(int motorA, int motorB) {
+        this.MotorA.setSpeed(motorA);
+        this.MotorB.setSpeed(motorB);
+    }
+
     public void sendData() {
         String msg = String.format(
-                "B%04dG%04dW%04dE%04dS%04d%n",
+                "B%04dG%04dW%04dE%04dS%04dA%04dC%04d%n",
                 Base.getCurrentPulse(),
                 Grip.getCurrentPulse(),
                 Wrist.getCurrentPulse(),
                 Elbow.getCurrentPulse(),
-                Shoulder.getCurrentPulse());
+                Shoulder.getCurrentPulse(),
+                MotorA.getSpeed(),
+                MotorB.getSpeed());
 
         arduinoSerial.write(msg);
 
@@ -88,9 +94,14 @@ public class ServoControl {
                 "\n\t- Shoulder : %3.2f" +
                 "\n\t- Elbow : %3.2f" +
                 "\n\t- Wrist : %3.2f" +
-                "\n\t- Grip : %3.2f",
+                "\n\t- Grip : %3.2f" +
+                "\nMotors :" +
+                "\n\t- A : %4d" +
+                "\n\t- B : %4d",
                 Base.getCurrentAngleDeg(), Shoulder.getCurrentAngleDeg(), Elbow.getCurrentAngleDeg(),
-                Wrist.getCurrentAngleDeg(), Grip.getCurrentAngleDeg()
+                Wrist.getCurrentAngleDeg(), Grip.getCurrentAngleDeg(),
+                MotorA.getSpeed(),
+                MotorB.getSpeed()
         );
     }
 

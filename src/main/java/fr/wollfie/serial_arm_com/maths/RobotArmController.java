@@ -1,8 +1,10 @@
 package fr.wollfie.serial_arm_com.maths;
 
-import fr.wollfie.serial_arm_com.apps.ArmPart;
-import fr.wollfie.serial_arm_com.apps.ArmPartDrawer;
-import fr.wollfie.serial_arm_com.apps.ServoControl;
+import fr.wollfie.serial_arm_com.sim.ArmPart;
+import fr.wollfie.serial_arm_com.graphics.ArmPartDrawer;
+import fr.wollfie.serial_arm_com.mechanism.ServoControl;
+import fr.wollfie.serial_arm_com.movement_sequence.MovementFrame;
+import javafx.geometry.Point3D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.Nullable;
@@ -19,10 +21,25 @@ public final class RobotArmController {
 
     private final ServoControl servoControl;
 
+    private Point3D gripPosition;
+    private double gripOpeningDeg;
+    private double angleToGroundDeg;
+
     public void configWrist(double angleDeg) {
         this.handDrawer.getArmPart().rotateToAngleRad(Math.toRadians(angleDeg));
     }
 
+    public Point3D getPolarGripPosition() {
+        return gripPosition;
+    }
+
+    public double getGripOpeningDeg() {
+        return gripOpeningDeg;
+    }
+
+    public double getAngleToGroundDeg() {
+        return angleToGroundDeg;
+    }
 
     private RobotArmController(double l1, double l2, double l3, ServoControl servoControl) {
         this.l1 = l1;
@@ -67,7 +84,21 @@ public final class RobotArmController {
                     handDrawer.getArmPart().getAngleRad(),
                     Math.toRadians(gripOpeningDeg)
             );
+
+            gripPosition = new Point3D(x, Math.toRadians(baseRotationDeg), y);
+            this.gripOpeningDeg = gripOpeningDeg;
+            this.angleToGroundDeg = angleToGroundDeg;
         }
+    }
+
+    public void update(MovementFrame movementFrame, boolean sendToArm) {
+        Point3D polar = movementFrame.getPolarGripPosition();
+        double x = polar.getX();
+        double rot = polar.getY();
+        double y = polar.getZ();
+        this.update(x, y, movementFrame.getAngleToGroundDegree(),
+                false, movementFrame.getGripOpeningDegree(),
+                rot);
     }
 
     public void apply(double x, double y, double angleToGroundDeg, boolean elbowUp) {
@@ -112,5 +143,7 @@ public final class RobotArmController {
         forearmDrawer.drawOn(ctx);
         handDrawer.drawOn(ctx);
     }
+
+
 
 }

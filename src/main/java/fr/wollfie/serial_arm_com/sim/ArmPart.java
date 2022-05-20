@@ -1,7 +1,6 @@
-package fr.wollfie.serial_arm_com.apps;
+package fr.wollfie.serial_arm_com.sim;
 
 import javafx.geometry.Point2D;
-import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
 import org.jetbrains.annotations.Nullable;
