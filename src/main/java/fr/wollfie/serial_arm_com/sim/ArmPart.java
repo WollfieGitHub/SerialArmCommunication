@@ -16,6 +16,10 @@ public final class ArmPart {
         this.parent = parent;
     }
 
+    public double getLength() {
+        return length;
+    }
+
     private ArmPart(double length, double angleRad, ArmPart parent) {
         this.length = length;
         this.angleRad = angleRad;

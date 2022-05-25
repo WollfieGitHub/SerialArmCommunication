@@ -12,7 +12,7 @@ import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.scene.transform.Transform;
 
 public class ArmSimulationCanvas {
-    public static final int MAIN_CANVAS_DIM = 300;
+    public static final int MAIN_CANVAS_DIM = 200;
 
     public final double ScaleFactor;
 
@@ -40,7 +40,7 @@ public class ArmSimulationCanvas {
 
         armCtx = initCanvas.getGraphicsContext2D();
         initCanvas.setWidth(2* MAIN_CANVAS_DIM);
-        initCanvas.setHeight(MAIN_CANVAS_DIM);
+        initCanvas.setHeight(1.4*MAIN_CANVAS_DIM);
 
         this.canvasTransform = Transform.affine(
                 ScaleFactor, 0,
@@ -53,7 +53,7 @@ public class ArmSimulationCanvas {
             try {
                 Point2D mouse = new Point2D(mouseEvent.getX(), mouseEvent.getY());
                 xy = this.canvasTransform.inverseTransform(mouse);
-                xy = new Point2D(xy.getX(), Math.max(xy.getY(), 0));
+                xy = new Point2D(xy.getX(), xy.getY());
 
                 if (Math.sqrt((xy.getX()*xy.getX()) + (xy.getY()*xy.getY())) > armController.getMaxRange()) {
                     xy = xy.normalize().multiply(armController.getMaxRange());
@@ -73,7 +73,6 @@ public class ArmSimulationCanvas {
         initCanvas.setOnMouseDragged(armOrder);
         return initCanvas;
     }
-
 
     public GraphicsContext getGraphicsContext2D() {
         return armCtx;

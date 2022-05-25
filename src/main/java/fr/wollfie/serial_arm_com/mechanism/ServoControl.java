@@ -18,7 +18,7 @@ public class ServoControl {
     static final double INITIAL_BASE_RAD = Math.toRadians(0);
     static final double INITIAL_SHOULDER_RAD = Math.toRadians(-1);
     static final double INITIAL_ELBOW_RAD = Math.toRadians(30);
-    static final double INITIAL_WRIST_RAD = Math.toRadians(-90);
+    static final double INITIAL_WRIST_RAD = Math.toRadians(85);
     static final double INITIAL_GRIP_RAD = Math.toRadians(0);
 
     static final String ARDUINO_PORT = "COM3";
@@ -27,7 +27,7 @@ public class ServoControl {
     private final Servo Base = Servo.of(SERVO_MG996R_MIN, SERVO_MG996R_MAX, INITIAL_BASE_RAD, false);
     private final Servo Shoulder = Servo.of(SERVO_BIG_MIN, SERVO_BIG_MAX, INITIAL_SHOULDER_RAD, true);
     private final Servo Elbow = Servo.of(SERVO_BIG_MIN, SERVO_BIG_MAX, INITIAL_ELBOW_RAD, true);
-    private final Servo Wrist = Servo.of(SERVO_MG996R_MIN, SERVO_MG996R_MAX, INITIAL_WRIST_RAD, true);
+    private final Servo Wrist = Servo.of(160, 410, INITIAL_WRIST_RAD, true);
     private final Servo Grip = Servo.of(SERVO_BIG_MIN, SERVO_BIG_MAX, INITIAL_GRIP_RAD, false);
 
     private final DCMotor MotorA = new DCMotor();

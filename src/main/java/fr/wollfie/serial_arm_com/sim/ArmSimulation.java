@@ -27,7 +27,8 @@ public class ArmSimulation {
     }
 
     public void update() {
-        this.ArmController.update(x, y, Math.toDegrees(phiE), elbowUp, gripOpeningDeg, baseRotationDeg);
+        this.ArmController.update(x, y, Math.toDegrees(phiE), elbowUp, gripOpeningDeg, baseRotationDeg, true);
+        this.ArmController.update3DRepresentations();
         this.CarController.update(motorASpeed, motorBSpeed);
     }
 }

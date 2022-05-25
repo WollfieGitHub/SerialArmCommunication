@@ -1,10 +1,15 @@
 package fr.wollfie.serial_arm_com.apps.components;
 
 import fr.wollfie.serial_arm_com.apps.InverseKinApp;
+import fr.wollfie.serial_arm_com.apps.components.canvas_3d.Scene3D;
+import fr.wollfie.serial_arm_com.maths.RobotArmController;
+import fr.wollfie.serial_arm_com.movement_sequence.MovementSequencer;
 import fr.wollfie.serial_arm_com.sim.ArmSimulation;
+import fr.wollfie.serial_arm_com.sim.VirtualServoControl;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -19,16 +24,22 @@ public class MainPanel {
     public VBox getRoot() { return root; }
 
     private final ArmSimulation armSimulation;
+    private AnimationCapture animationCapture;
 
-    public MainPanel(Canvas armCanvas, ArmSimulation armSimulation) {
-        initMainBox(armCanvas);
+    public MainPanel(Canvas armCanvas, ArmSimulation armSimulation, RobotArmController robotController,
+                     MovementSequencer movementSequencer, Scene3D scene3D, VirtualServoControl virtualServoControl) {
+        initMainBox(armCanvas, robotController, movementSequencer, scene3D, virtualServoControl);
         this.armSimulation = armSimulation;
     }
 
-    private void initMainBox(Canvas canvas) {
+    private void initMainBox(Canvas canvas, RobotArmController robotController, MovementSequencer movementSequencer,
+                             Scene3D scene3D, VirtualServoControl virtualServoControl) {
         this.root = new VBox();
+        animationCapture = new AnimationCapture(movementSequencer, robotController, scene3D,
+                virtualServoControl);
 
         VBox invKinVBox = initInvKinVBox(canvas);
+        VBox animationVBox = animationCapture.getRoot();
         VBox rotVBox = initRotVBox();
         VBox phiEVBox = initPhiEVBox();
         VBox elbowUpVBox = initElbowUpVBox();
@@ -36,7 +47,7 @@ public class MainPanel {
         //VBox wristConfigVBox = initGripConfigVBox();
 
         root.setSpacing(10.0);
-        root.getChildren().addAll(invKinVBox, rotVBox, gripOpeningVBox, phiEVBox, elbowUpVBox);
+        root.getChildren().addAll(invKinVBox, animationVBox, rotVBox, gripOpeningVBox, phiEVBox, elbowUpVBox);
     }
 
     private VBox initInvKinVBox(Canvas invKinCanvas) {

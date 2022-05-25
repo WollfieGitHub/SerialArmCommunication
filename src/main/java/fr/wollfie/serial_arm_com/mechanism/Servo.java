@@ -16,7 +16,7 @@ public class Servo {
     private double currentAngle;
     private double displayAngleRad;
 
-    private Servo(int minPulse, int maxPulse, double mountedAngleRad, boolean changeDirection) {
+    protected Servo(int minPulse, int maxPulse, double mountedAngleRad, boolean changeDirection) {
         MinPulse = minPulse;
         MaxPulse = maxPulse;
         PulseRange = MaxPulse - MinPulse;
@@ -33,8 +33,8 @@ public class Servo {
         this.displayAngleRad = angleRad;
         double correctedAngle = angleRad - MountedAngleRad;
 
-        correctedAngle = ChangeDirection ? (RAD_RANGE-correctedAngle) : correctedAngle;
         double clampedAngle = modRange(correctedAngle);
+        clampedAngle = ChangeDirection ? (RAD_RANGE-clampedAngle) : clampedAngle;
 
         double factor = clampedAngle/RAD_RANGE;
         this.currentAngle = clampedAngle;
