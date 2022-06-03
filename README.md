@@ -3,5 +3,4 @@ Java FX + Arduino goes boom
 
 ## Setup
 
-Upload d'abord le programme sauvé [ici](/Arduino/ArduinoSerialArmCom/ArduinoSerialArmCom.ino) au bras puis lance 
-la configuration par défaut JavaFX "App"
+First upload the program saved [here](/Arduino/ArduinoSerialArmCom/ArduinoSerialArmCom.ino) to the arm and, once the project loaded in IntelliJ IDE, run the configuration called "Java FX".
